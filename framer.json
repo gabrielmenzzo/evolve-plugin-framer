@@ -1,0 +1,9 @@
+{
+  "id": "674072",
+  "name": "Evolve Async",
+  "modes": [
+    "configureManagedCollection",
+    "syncManagedCollection"
+  ],
+  "icon": "/icon.svg"
+}
