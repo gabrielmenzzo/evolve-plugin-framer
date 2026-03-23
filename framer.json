@@ -1,6 +1,7 @@
 {
   "id": "674072",
-  "name": "Evolve Async",
+  "name": "Sync EVO",
+  "permissions": ["managedCollection"],
   "modes": [
     "configureManagedCollection",
     "syncManagedCollection"
