@@ -489,9 +489,9 @@ export function App() {
                             uni_cep: tf("string", s(u.zipCode)),
                             uni_contact: tf("string", s(u.whatsapp || u.telephone)),
                             uni_fit_plan_name: tf("string", priceConfig.fitPlanName),
-                            uni_fit_price: tf("string", applyFitPrice ? priceConfig.fitPrice : ""),
+                            uni_fit_price: tf("string", applyFitPrice ? `${priceConfig.fitPlanName}|${priceConfig.fitPrice}` : ""),
                             uni_flex_plan_name: tf("string", priceConfig.flexPlanName),
-                            uni_flex_price: tf("string", applyFlexPrice ? priceConfig.flexPrice : ""),
+                            uni_flex_price: tf("string", applyFlexPrice ? `${priceConfig.flexPlanName}|${priceConfig.flexPrice}` : ""),
                             ...(finalFit && { link_fit: tf("string", finalFit) }),
                             ...(finalFlex && { link_flex: tf("string", finalFlex) }),
                             ...(hasValidCoords && {
