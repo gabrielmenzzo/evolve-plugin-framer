@@ -53,6 +53,22 @@ const PROXY = "https://corsproxy.io/?"
 const SLUG_INVALID_CHARS = new RegExp("[^a-z0-9]+", "g")
 const SLUG_TRIM_DASHES = new RegExp("(^-|-$)", "g")
 
+// Mapeamento de sinônimos: catálogo EVO pode usar nomes diferentes da agenda
+const ACTIVITY_SYNONYMS: Record<string, string> = {
+    "SPINNING": "BIKE INDOOR",
+}
+
+// Atividades que não são esportes/aulas reais da academia
+const ACTIVITY_BLOCKLIST = [
+    "PRESCRIÇÃO", "PRESCRICAO", "TESTE", "AVALIAÇÃO", "AVALIACAO",
+    "CATRACA", "FÉRIAS", "FERIAS", "MANUTENÇÃO", "MANUTENCAO",
+]
+
+function normalizeActivityName(name: string): string {
+    const upper = (name || "").trim().toUpperCase()
+    return ACTIVITY_SYNONYMS[upper] || upper
+}
+
 function toSlug(name: string): string {
     return name.toLowerCase().replace(SLUG_INVALID_CHARS, "-").replace(SLUG_TRIM_DASHES, "")
 }
@@ -407,11 +423,7 @@ export function App() {
                                 }))
                         }
 
-                        unitActivities = allActivities.filter(
-                            (a: any) => !a.inactive && (a.idBranch === u.idBranch || a.idBranch === 0)
-                        )
-                        activitiesKeywords = unitActivities.map((a: any) => a.name).join(", ")
-
+                        // === PASSO 1: Buscar AGENDA primeiro (fonte de verdade) ===
                         try {
                             const urlSched = PROXY + encodeURIComponent(
                                 `${BASE_URL_V1}/activities/schedule?idBranch=${u.idBranch}&showFullWeek=true`
@@ -429,6 +441,39 @@ export function App() {
                                 }))
                             }
                         } catch (e) { console.warn(`Erro Agenda Unidade ${u.idBranch}`) }
+
+                        // === PASSO 2: Extrair nomes REAIS da agenda (normalizados) ===
+                        const scheduledNamesNormalized = new Set(
+                            cleanSchedule
+                                .map((s: any) => normalizeActivityName(s.name || ""))
+                                .filter(Boolean)
+                        )
+
+                        // === PASSO 3: Filtrar catálogo — só aulas que REALMENTE estão na agenda ===
+                        unitActivities = allActivities.filter((a: any) => {
+                            if (a.inactive) return false
+                            const nameUpper = (a.name || "").trim().toUpperCase()
+                            // Bloquear atividades de sistema / não-esportivas
+                            if (ACTIVITY_BLOCKLIST.some((b) => nameUpper.includes(b))) return false
+                            // Normalizar e verificar se está na agenda real
+                            const normalized = normalizeActivityName(a.name || "")
+                            return scheduledNamesNormalized.has(normalized)
+                        })
+
+                        // === PASSO 4: Keywords incluem nomes do catálogo + agenda (para filtro Framer) ===
+                        const keywordSet = new Set<string>()
+                        unitActivities.forEach((a: any) => {
+                            const name = (a.name || "").trim()
+                            if (name) keywordSet.add(name)
+                        })
+                        // Incluir nomes originais da agenda (podem ser diferentes do catálogo)
+                        cleanSchedule.forEach((s: any) => {
+                            const name = (s.name || "").trim()
+                            if (name && !ACTIVITY_BLOCKLIST.some((b) => name.toUpperCase().includes(b))) {
+                                keywordSet.add(name)
+                            }
+                        })
+                        activitiesKeywords = [...keywordSet].join(", ")
                     }
 
                     const cleanActivitiesJSON = unitActivities.map((a: any) => ({
