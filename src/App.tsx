@@ -136,6 +136,7 @@ export function App() {
                 // Campos de Preços definidos para userEditable: true para preenchimento manual
                 { id: "uni_fit_plan_name", name: "Nome Plano FIT", type: "string", userEditable: true },
                 { id: "uni_fit_price", name: "Preço Promocional FIT", type: "string", userEditable: true },
+                { id: "uni_fit_original_price", name: "Preço Original Riscado FIT", type: "string", userEditable: true },
                 { id: "uni_flex_plan_name", name: "Nome Plano FLEX", type: "string", userEditable: true },
                 { id: "uni_flex_price", name: "Preço Promocional FLEX", type: "string", userEditable: true },
                 
